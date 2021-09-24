@@ -104,7 +104,7 @@ def signup(request):
         except IntegrityError:
             return JsonResponse({'error':'That username has already been taken. Please choose a new username'}, status=400)
     else:
-        return JsonResponse({'Error': 'ok'}, status=400)
+        return JsonResponse({'Error': 'No Get '}, status=400)
 
 @csrf_exempt
 def login(request):
@@ -120,5 +120,5 @@ def login(request):
                 token = Token.objects.create(user=user)
             return JsonResponse({'token':str(token)}, status=200)
     else:
-        return JsonResponse({'Error': 'ok'}, status=400)
+        return JsonResponse({'Error': 'No Get'}, status=400)
 
