@@ -76,10 +76,9 @@ class Notifications(generics.CreateAPIView):
 
 class Call_Notifications(generics.CreateAPIView):
     serializer_class = NotificationSerializer
-    permission_classes = [permissions.IsAuthenticated]
     def perform_create(self, serializer):
         for e in Notification_Id.objects.all():
-            send_push_message(e.key, req["title"])
+            send_push_message(e.key, self.request.data["title"])
         serializer.save()
 
 class Analytics(generics.ListCreateAPIView):
@@ -121,4 +120,3 @@ def login(request):
             return JsonResponse({'token':str(token)}, status=200)
     else:
         return JsonResponse({'Error': 'No Get'}, status=400)
-
