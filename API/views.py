@@ -9,7 +9,7 @@ from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
 from .serializers import Notification_IdSerializer, analytics_eventSerializer, NotificationSerializer
-
+from datetime import date, timedelta
 # Expo Notifications stuff
 
 from exponent_server_sdk import (
@@ -76,6 +76,8 @@ class Notifications(generics.CreateAPIView):
 
 class Call_Notifications(generics.CreateAPIView):
     serializer_class = NotificationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
     def perform_create(self, serializer):
         for e in Notification_Id.objects.all():
             send_push_message(e.key, self.request.data["title"])
@@ -84,8 +86,20 @@ class Call_Notifications(generics.CreateAPIView):
 class Analytics(generics.ListCreateAPIView):
     serializer_class = analytics_eventSerializer
     permission_classes = [permissions.IsAuthenticated]
+
     def get_queryset(self):
-        return Analytics_event.objects.all()
+        ok = self.kwargs.get('date')
+        type = self.kwargs.get('type')
+        if(not type):
+            type = "login"
+        today = date.today()
+        if(ok == 1):
+            return Analytics_event.objects.filter(time__day = today.day, name=type)
+        elif(ok == 2):
+            return Analytics_event.objects.filter(time__month = today.month, name=type)
+        else :
+            return Analytics_event.objects.all()
+
 
     def perform_create(self, serializer):
         obj = serializer.save()
