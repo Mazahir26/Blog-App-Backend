@@ -88,7 +88,7 @@ class Analytics(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        Analytics_event.objects.filter(time__gte=datetime.now()-timedelta(days=10)).delete()
+        Analytics_event.objects.filter(time__lte=datetime.now()-timedelta(days=10)).delete()
         ok = self.kwargs.get('date')
         type = self.kwargs.get('type')
         if(not type):
