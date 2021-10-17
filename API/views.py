@@ -9,7 +9,7 @@ from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
 from .serializers import Notification_IdSerializer, analytics_eventSerializer, NotificationSerializer
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 # Expo Notifications stuff
 
 from exponent_server_sdk import (
@@ -77,7 +77,7 @@ class Notifications(generics.CreateAPIView):
 class Call_Notifications(generics.CreateAPIView):
     serializer_class = NotificationSerializer
     permission_classes = [permissions.IsAuthenticated]
-    
+
     def perform_create(self, serializer):
         for e in Notification_Id.objects.all():
             send_push_message(e.key, self.request.data["title"])
@@ -88,6 +88,7 @@ class Analytics(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        Analytics_event.objects.filter(time__gte=datetime.now()-timedelta(days=10)).delete()
         ok = self.kwargs.get('date')
         type = self.kwargs.get('type')
         if(not type):
@@ -105,19 +106,6 @@ class Analytics(generics.ListCreateAPIView):
         obj = serializer.save()
 
 
-@csrf_exempt
-def signup(request):
-    if request.method == 'POST':
-        try:
-            data = JSONParser().parse(request)
-            user = User.objects.create_user(data['username'], password=data['password'], email = data['email'])
-            user.save()
-            token = Token.objects.create(user=user)
-            return JsonResponse({'token':str(token)}, status=201)
-        except IntegrityError:
-            return JsonResponse({'error':'That username has already been taken. Please choose a new username'}, status=400)
-    else:
-        return JsonResponse({'Error': 'No Get '}, status=400)
 
 @csrf_exempt
 def login(request):

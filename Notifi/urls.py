@@ -21,7 +21,6 @@ from API import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', views.login, name='login'),
-    path('signup/', views.signup, name='signup'),
     path('notifications', views.Notifications.as_view(), name='notifications'),
     path('analytics/<int:date>/<str:type>', views.Analytics.as_view(), name="analytics"),
     path('send/notification', views.Call_Notifications.as_view(), name="send_notifications"),
