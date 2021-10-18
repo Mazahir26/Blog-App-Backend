@@ -21,10 +21,11 @@ from exponent_server_sdk import (
 )
 from requests.exceptions import ConnectionError, HTTPError
 
-def send_push_message(token, message, extra=None):
+def send_push_message(token, title , message=None, extra=None):
     try:
         response = PushClient().publish(
             PushMessage(to=token,
+                        title=title,
                         body=message,
                         data=extra))
     except PushServerError as exc:
@@ -52,8 +53,7 @@ def send_push_message(token, message, extra=None):
         response.validate_response()
     except DeviceNotRegisteredError:
         # Mark the push token as inactive
-        from notifications.models import PushToken
-        PushToken.objects.filter(token=token).update(active=False)
+        Notification_Id.objects.filter(key=token).delete()
     except PushTicketError as exc:
         # Encountered some other per-notification error.
         rollbar.report_exc_info(
@@ -79,8 +79,12 @@ class Call_Notifications(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        for e in Notification_Id.objects.all():
-            send_push_message(e.key, self.request.data["title"])
+        if 'body' in self.request.data:
+            for e in Notification_Id.objects.all():
+                send_push_message(e.key, self.request.data["title"], self.request.data["body"])
+        else:
+            for e in Notification_Id.objects.all():
+                send_push_message(e.key, self.request.data["title"])
         serializer.save()
 
 class Analytics(generics.ListCreateAPIView):
